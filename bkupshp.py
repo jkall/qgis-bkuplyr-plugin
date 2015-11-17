@@ -24,9 +24,19 @@ from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from PyQt4.QtGui import QAction, QIcon
 # Initialize Qt resources from file resources.py
 import resources
+# Import some general python modules
+import os.path
+import sys
+import datetime
+import zipfile
+try:
+    import zlib
+    compression = zipfile.ZIP_DEFLATED
+except:
+    compression = zipfile.ZIP_STORED
 # Import the code for the dialog
 from bkupshp_dialog import BackupShapeDialog
-import os.path
+import os
 
 
 class BackupShape:
@@ -187,6 +197,18 @@ class BackupShape:
         result = self.dlg.exec_()
         # See if OK was pressed
         if result:
-            # Do something useful here - delete the line containing pass and
-            # substitute with your code.
-            pass
+            lyr = self.iface.activeLayer()
+            (fpath,fname) = os.path.split(lyr.dataProvider().dataSourceUri())
+            fname = os.path.splitext(fname)[0]
+            bkupname = os.path.join(fpath, fname + datetime.datetime.now().strftime('%Y%m%dT%H%M') + '.zip')
+            print(bkupname)
+            
+            zf = zipfile.ZipFile(bkupname, mode='w')
+            for file in os.listdir(fpath):
+                BaseName = os.path.basename(file)
+                FileName, FileExtension = os.path.splitext(BaseName)
+                if FileName==fname:
+                    print(os.path.join(fpath,BaseName))
+                    zf.write(os.path.join(fpath,BaseName),BaseName, compress_type=compression) #compression will depend on if zlib is found or not
+            zf.close()
+            

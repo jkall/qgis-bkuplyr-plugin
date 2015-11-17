@@ -1,7 +1,5 @@
-#mina ignores
-README.html
-README.txt
-
+# jk additions
+plugin_upload.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

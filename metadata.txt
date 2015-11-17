@@ -14,10 +14,10 @@ version=0.1
 author=Josef Källgården
 email=groundwatergis@gmail.com
 
-about=This plugin will create a compressed (zip container) backup of the currently selected shapefile layer. The compressed backup file will be saved in the original shapefile directory, with current date and time appended to file name.
+about=This plugin will create a compressed (zip container) archive of the currently selected shapefile layer (and associated files). The compressed archive file will be saved in the original shapefile directory, with current date and time appended to file name. This way you can easily, from within qgis, create a backup copy of your shapefile before start editing.
 
-tracker=github.com
-repository=github.com
+tracker=https://github.com/jkall/qgis-bkupshp-plugin/issues
+repository=https://github.com/jkall/qgis-bkupshp-plugin
 # End of mandatory metadata
 
 # Recommended items:
@@ -28,7 +28,7 @@ repository=github.com
 # Tags are comma separated with spaces allowed
 tags=vector, shapefile, backup, zip, compress
 
-homepage=github.com
+homepage=https://github.com/jkall/qgis-bkupshp-plugin/wiki
 category=Plugins
 icon=icon.png
 # experimental flag

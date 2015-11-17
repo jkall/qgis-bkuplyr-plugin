@@ -21,7 +21,7 @@
  ***************************************************************************/
 """
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
-from PyQt4.QtGui import QAction, QIcon
+from PyQt4.QtGui import QAction, QIcon, QDialog, QMessageBox, QPushButton
 # Initialize Qt resources from file resources.py
 import resources
 # Import some general python modules
@@ -75,8 +75,8 @@ class BackupShape:
         self.actions = []
         self.menu = self.tr(u'&Backup shapefile')
         # TODO: We are going to let the user set this up in a future iteration
-        self.toolbar = self.iface.addToolBar(u'BackupShape')
-        self.toolbar.setObjectName(u'BackupShape')
+        #self.toolbar = self.iface.addToolBar(u'BackupShape')
+        #self.toolbar.setObjectName(u'BackupShape')
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -156,7 +156,10 @@ class BackupShape:
             action.setWhatsThis(whats_this)
 
         if add_to_toolbar:
-            self.toolbar.addAction(action)
+            # Add toolbar button and menu item
+            self.iface.addToolBarIcon(action)
+            #self.iface.addPluginToMenu('&Plugin Builder', self.action)
+            #self.toolbar.addAction(action)
 
         if add_to_menu:
             self.iface.addPluginToMenu(
@@ -186,23 +189,28 @@ class BackupShape:
                 action)
             self.iface.removeToolBarIcon(action)
         # remove the toolbar
-        del self.toolbar
+        #del self.toolbar
 
 
     def run(self):
         """Run method that performs all the real work"""
+
+        lyr = self.iface.activeLayer()
+        (fpath,fname) = os.path.split(lyr.dataProvider().dataSourceUri())
+        fname = os.path.splitext(fname)[0]
+        bkupname = os.path.join(fpath, fname + datetime.datetime.now().strftime('%Y%m%dT%H%M') + '.zip')
+        #print(bkupname)
+        sanity = askuser("YesNo","""This will create a backup file named """ + bkupname + """.\n\nContinue?""",'Backup?')
+
+        """        
         # show the dialog
         self.dlg.show()
         # Run the dialog event loop
         result = self.dlg.exec_()
-        # See if OK was pressed
         if result:
-            lyr = self.iface.activeLayer()
-            (fpath,fname) = os.path.split(lyr.dataProvider().dataSourceUri())
-            fname = os.path.splitext(fname)[0]
-            bkupname = os.path.join(fpath, fname + datetime.datetime.now().strftime('%Y%m%dT%H%M') + '.zip')
-            print(bkupname)
-            
+        """
+        # See if OK was pressed
+        if sanity.result == 1:
             zf = zipfile.ZipFile(bkupname, mode='w')
             for file in os.listdir(fpath):
                 BaseName = os.path.basename(file)
@@ -211,4 +219,28 @@ class BackupShape:
                     print(os.path.join(fpath,BaseName))
                     zf.write(os.path.join(fpath,BaseName),BaseName, compress_type=compression) #compression will depend on if zlib is found or not
             zf.close()
-            
+
+
+class askuser(QDialog):
+    def __init__(self, question="YesNo", msg = '', dialogtitle='User input needed', parent=None):
+        self.result = ''
+        if question == 'YesNo':         #  Yes/No dialog 
+            reply = QMessageBox.information(parent, dialogtitle, msg, QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+            if reply==QMessageBox.Yes:
+                self.result = 1 #1 = "yes"
+            else:
+                self.result = 0  #0="no"
+        elif question == 'AllSelected': # All or Selected Dialog
+            btnAll = QPushButton("All")   # = "0"
+            btnSelected = QPushButton("Selected")     # = "1"
+            #btnAll.clicked.connect(self.DoForAll)
+            #btnSelected.clicked.connect(self.DoForSelected)
+            msgBox = QtGui.QMessageBox(parent)
+            msgBox.setText(msg)
+            msgBox.setWindowTitle(dialogtitle)
+            #msgBox.setWindowModality(Qt.ApplicationModal)
+            msgBox.addButton(btnAll, QMessageBox.ActionRole)
+            msgBox.addButton(btnSelected, QMessageBox.ActionRole)
+            msgBox.addButton(QMessageBox.Cancel)
+            reply = msgBox.exec_()
+            self.result = reply # ALL=0, SELECTED=1

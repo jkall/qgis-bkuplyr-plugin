@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
- BackupShape
+ BackupLayer
                                  A QGIS plugin
- This plugin backups the selected shapefile layer and stores in a zipped file with current date time stamp
+ Backup the selected layer by saving the corresponding data file(s) in a zip file with datetime stamp appended to name
                              -------------------
         begin                : 2015-11-17
         copyright            : (C) 2015 by Josef Källgården
@@ -25,11 +25,11 @@
 
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
-    """Load BackupShape class from file BackupShape.
+    """Load BackupLayer class from file bkuplyr.
 
     :param iface: A QGIS interface instance.
     :type iface: QgsInterface
     """
     #
-    from .bkupshp import BackupShape
-    return BackupShape(iface)
+    from .bkuplyr import BackupLayer
+    return BackupLayer(iface)

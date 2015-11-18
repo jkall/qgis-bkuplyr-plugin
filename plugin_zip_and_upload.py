@@ -37,7 +37,7 @@ def main(parameters, arguments):
         parameters.port,
         ENDPOINT)
     print "Connecting to: %s" % hide_password(address)
-    print (parameters.password)
+
     server = xmlrpclib.ServerProxy(address, verbose=VERBOSE)
 
     try:

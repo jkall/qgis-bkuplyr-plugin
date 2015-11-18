@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
- BackupShape
+ BackupLayer
                                  A QGIS plugin
- This plugin backups the selected shapefile layer and stores in a zipped file with current date time stamp
+ Backup the selected layer by saving the corresponding data file(s) in a zip file with datetime stamp appended to name
                               -------------------
         begin                : 2015-11-17
         git sha              : $Format:%H$
@@ -38,7 +38,7 @@ except:
 import os
 
 
-class BackupShape:
+class BackupLayer:
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface):
@@ -53,13 +53,25 @@ class BackupShape:
         self.iface = iface
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
-        
+
+        # initialize locale
+        locale = QSettings().value('locale/userLocale')[0:2]
+        locale_path = os.path.join(
+            self.plugin_dir,
+            'i18n',
+            'BackupLayer_{}.qm'.format(locale))
+
+        if os.path.exists(locale_path):
+            self.translator = QTranslator()
+            self.translator.load(locale_path)
+
+            if qVersion() > '4.3.3':
+                QCoreApplication.installTranslator(self.translator)
+                        
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&Backup shapefile')
-        # TODO: We are going to let the user set this up in a future iteration
-        #self.toolbar = self.iface.addToolBar(u'BackupShape')
-        #self.toolbar.setObjectName(u'BackupShape')
+        self.menu = self.tr(u'&Backup layer')
+
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -74,7 +86,7 @@ class BackupShape:
         :rtype: QString
         """
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
-        return QCoreApplication.translate('BackupShape', message)
+        return QCoreApplication.translate('BackupLayer', message)
 
 
     def add_action(
@@ -141,8 +153,6 @@ class BackupShape:
         if add_to_toolbar:
             # Add toolbar button and menu item
             self.iface.addToolBarIcon(action)
-            #self.iface.addPluginToMenu('&Plugin Builder', self.action)
-            #self.toolbar.addAction(action)
 
         if add_to_menu:
             self.iface.addPluginToMenu(
@@ -153,13 +163,14 @@ class BackupShape:
 
         return action
 
+
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ':/plugins/BackupShape/icon.png'
+        icon_path = ':/plugins/BackupLayer/icon.png'
         self.add_action(
             icon_path,
-            text=self.tr(u'Backup shapefile'),
+            text=self.tr(u'zip selected layer'),
             callback=self.run,
             parent=self.iface.mainWindow())
 
@@ -168,62 +179,40 @@ class BackupShape:
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
             self.iface.removePluginMenu(
-                self.tr(u'&Backup shapefile'),
+                self.tr(u'&Backup layer'),
                 action)
             self.iface.removeToolBarIcon(action)
-        # remove the toolbar
-        #del self.toolbar
 
 
     def run(self):
         """Run method that performs all the real work"""
-
         lyr = self.iface.activeLayer()
-        (fpath,fname) = os.path.split(lyr.dataProvider().dataSourceUri())
-        fname = os.path.splitext(fname)[0]
-        bkupname = os.path.join(fpath, fname + datetime.datetime.now().strftime('%Y%m%dT%H%M') + '.zip')
-        #print(bkupname)
-        sanity = askuser("YesNo","""This will create a backup file named """ + bkupname + """.\n\nContinue?""",'Backup?')
-
-        """        
-        # show the dialog
-        self.dlg.show()
-        # Run the dialog event loop
-        result = self.dlg.exec_()
-        if result:
-        """
-        # See if OK was pressed
-        if sanity.result == 1:
-            zf = zipfile.ZipFile(bkupname, mode='w')
-            for file in os.listdir(fpath):
-                BaseName = os.path.basename(file)
-                FileName, FileExtension = os.path.splitext(BaseName)
-                if FileName==fname:
-                    print(os.path.join(fpath,BaseName))
-                    zf.write(os.path.join(fpath,BaseName),BaseName, compress_type=compression) #compression will depend on if zlib is found or not
-            zf.close()
-
+        if lyr is not None:
+            (fpath,fname) = os.path.split(lyr.dataProvider().dataSourceUri())
+            fname = os.path.splitext(fname)[0]
+            bkupname = os.path.join(fpath, fname + datetime.datetime.now().strftime('%Y%m%dT%H%M') + '.zip')
+            sanity = askuser("""This will create a backup file named """ + bkupname + """\n\nContinue?""",'Backup?')
+            # See if OK was pressed
+            if sanity.result == 1:
+                try:
+                    zf = zipfile.ZipFile(bkupname, mode='w')
+                    for file in os.listdir(fpath):
+                        BaseName = os.path.basename(file)
+                        FileName, FileExtension = os.path.splitext(BaseName)
+                        if FileName==fname:
+                            print('compressing ' + os.path.join(fpath,BaseName))
+                            zf.write(os.path.join(fpath,BaseName),BaseName, compress_type=compression) #compression will depend on if zlib is found or not
+                    zf.close()
+                except:
+                    self.iface.messageBar().pushMessage("Error","Problems creating archive. Verify this is a file layer and not a database layer.", 2, duration=5)
+        else:
+            self.iface.messageBar().pushMessage("Error","Select a layer!", 2, duration=5)
 
 class askuser(QDialog):
-    def __init__(self, question="YesNo", msg = '', dialogtitle='User input needed', parent=None):
+    def __init__(self, msg = '', dialogtitle='User input needed', parent=None):
         self.result = ''
-        if question == 'YesNo':         #  Yes/No dialog 
-            reply = QMessageBox.information(parent, dialogtitle, msg, QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
-            if reply==QMessageBox.Yes:
-                self.result = 1 #1 = "yes"
-            else:
-                self.result = 0  #0="no"
-        elif question == 'AllSelected': # All or Selected Dialog
-            btnAll = QPushButton("All")   # = "0"
-            btnSelected = QPushButton("Selected")     # = "1"
-            #btnAll.clicked.connect(self.DoForAll)
-            #btnSelected.clicked.connect(self.DoForSelected)
-            msgBox = QtGui.QMessageBox(parent)
-            msgBox.setText(msg)
-            msgBox.setWindowTitle(dialogtitle)
-            #msgBox.setWindowModality(Qt.ApplicationModal)
-            msgBox.addButton(btnAll, QMessageBox.ActionRole)
-            msgBox.addButton(btnSelected, QMessageBox.ActionRole)
-            msgBox.addButton(QMessageBox.Cancel)
-            reply = msgBox.exec_()
-            self.result = reply # ALL=0, SELECTED=1
+        reply = QMessageBox.information(parent, dialogtitle, msg, QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+        if reply==QMessageBox.Yes:
+            self.result = 1 #1 = "yes"
+        else:
+            self.result = 0  #0="no"

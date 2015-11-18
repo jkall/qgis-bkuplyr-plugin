@@ -7,17 +7,17 @@
 # This file should be included when you package your plugin.# Mandatory items:
 
 [general]
-name=Backup shapefile
+name=Backup layer
 qgisMinimumVersion=2.0
-description=This plugin backups the selected shapefile layer and stores in a zipped file with current date time stamp
-version=0.1
+description=Backup the selected layer by saving the corresponding data file(s) in a zip file with datetime stamp appended to name
+version=0.1.1
 author=Josef Källgården
 email=groundwatergis@gmail.com
 
-about=This plugin will create a compressed (zip container) archive of the currently selected shapefile layer (and associated files). The compressed archive file will be saved in the original shapefile directory, with current date and time appended to file name. This way you can easily, from within qgis, create a backup copy of your shapefile before start editing.
+about=Backup layer creates a compressed archive (zip) of the data files corresponding to the selected layer. The plugin will search for all files with the same name (and same path) as your data file, independently of the file extension. The compressed archive will be saved in the same folder as the original data file with current datetime stamp appended to the file name. By using this plugin you can easily, from within qgis, create a backup copy of your layer before you start editing. This plugin will only work with layers where the data source is a file and not where the data source is a database (no matter if it is a single file database).
 
-tracker=https://github.com/jkall/qgis-bkupshp-plugin/issues
-repository=https://github.com/jkall/qgis-bkupshp-plugin
+tracker=https://github.com/jkall/qgis-bkuplyr-plugin/issues
+repository=https://github.com/jkall/qgis-bkuplyr-plugin
 # End of mandatory metadata
 
 # Recommended items:
@@ -26,13 +26,13 @@ repository=https://github.com/jkall/qgis-bkupshp-plugin
 # changelog=
 
 # Tags are comma separated with spaces allowed
-tags=vector, shapefile, backup, zip, compress
+tags=layer, data file, vector, shapefile, backup, zip, compress
 
-homepage=https://github.com/jkall/qgis-bkupshp-plugin/wiki
+homepage=https://github.com/jkall/qgis-bkuplyr-plugin/wiki
 category=Plugins
 icon=icon.png
 # experimental flag
-experimental=True
+experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False

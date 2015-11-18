@@ -1,5 +1,6 @@
 # specific files and folder
 arkiv_o_dok
+*.zip
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -81,7 +81,8 @@ def create_zipfile():#Please notice, this will only work with flat plugin folder
     zf = zipfile.ZipFile(os.path.join(dir_path, current_dir + '.zip'), mode='w')
     for root, dirs, files in os.walk(dir_path):
         dirs[:] = [d for d in dirs if d not in ['.git', 'arkiv_o_dok']]
-        files[:] = [f for f in files if f not in ['.gitignore', 'plugin_zip_and_upload.py','*.pyc',current_dir+'.zip']]
+        files[:] = [f for f in files if f not in ['.gitignore', 'plugin_zip_and_upload.py']]#exclude specific files
+        files[:]= [ file for file in files if not file.endswith( ('.pyc','.zip') ) ]#exclude specific file extensions
         for file in files:
             print('now adding this file ' + os.path.join(root,file))
             print('in archive it is saved as ' + os.path.join(current_dir,file))

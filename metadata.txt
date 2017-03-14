@@ -10,7 +10,7 @@
 name=Backup layer
 qgisMinimumVersion=2.0
 description=Backup the selected layer by saving the corresponding data file(s) in a zip file with datetime stamp appended to name
-version=0.1.1
+version=0.2
 author=Josef Källgården
 email=groundwatergis@gmail.com
 
@@ -23,7 +23,7 @@ repository=https://github.com/jkall/qgis-bkuplyr-plugin
 # Recommended items:
 
 # Uncomment the following line and add your changelog:
-# changelog=
+changelog=minor bug fix
 
 # Tags are comma separated with spaces allowed
 tags=layer, data file, vector, shapefile, backup, zip, compress

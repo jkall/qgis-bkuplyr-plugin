@@ -200,7 +200,6 @@ class BackupLayer:
                         BaseName = os.path.basename(file)
                         FileName, FileExtension = os.path.splitext(BaseName)
                         if FileName==fname:
-                            print('compressing ' + os.path.join(fpath,BaseName))
                             zf.write(os.path.join(fpath,BaseName),BaseName, compress_type=compression) #compression will depend on if zlib is found or not
                     zf.close()
                 except:

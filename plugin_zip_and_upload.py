@@ -5,6 +5,10 @@
         git sha              : $TemplateVCSFormat
 
         Modified by JK
+
+        #Please notice, this will only work with flat plugin folder structure!
+        USAGE:
+        python plugin_zip_and_upload.py 
 """
 
 import sys
@@ -80,7 +84,7 @@ def create_zipfile():#Please notice, this will only work with flat plugin folder
     current_dir = dir_path.split(os.sep)[-1]
     zf = zipfile.ZipFile(os.path.join(dir_path, current_dir + '.zip'), mode='w')
     for root, dirs, files in os.walk(dir_path):
-        dirs[:] = [d for d in dirs if d not in ['.git', 'arkiv_o_dok']]
+        dirs[:] = [d for d in dirs if d not in ['.git', 'arkiv_o_dok','__pycache__']]
         files[:] = [f for f in files if f not in ['.gitignore', 'plugin_zip_and_upload.py']]#exclude specific files
         files[:]= [ file for file in files if not file.endswith( ('.pyc','.zip') ) ]#exclude specific file extensions
         for file in files:

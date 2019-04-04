@@ -8,9 +8,9 @@
 
 [general]
 name=Backup layer
-qgisMinimumVersion=2.0
+qgisMinimumVersion=3.0
 description=Backup the selected layer by saving the corresponding data file(s) in a zip file with datetime stamp appended to name
-version=0.2
+version=0.3
 author=Josef Källgården
 email=groundwatergis@gmail.com
 

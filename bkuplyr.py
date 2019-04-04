@@ -20,10 +20,13 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
-from PyQt4.QtGui import QAction, QIcon, QDialog, QMessageBox, QPushButton
+from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
+from PyQt5.QtGui import QIcon 
+from PyQt5.QtWidgets import QAction, QDialog, QMessageBox, QPushButton
 # Initialize Qt resources from file resources.py
-import resources
+#import resources
+from .resources import *
+
 # Import some general python modules
 import os.path
 import sys
@@ -202,6 +205,7 @@ class BackupLayer:
                         if FileName==fname:
                             zf.write(os.path.join(fpath,BaseName),BaseName, compress_type=compression) #compression will depend on if zlib is found or not
                     zf.close()
+                    self.iface.messageBar().pushMessage("Backup","Created backup file {}".format(bkupname), 1, duration=5)
                 except:
                     self.iface.messageBar().pushMessage("Error","Problems creating archive. Verify this is a file layer and not a database layer.", 2, duration=5)
         else:

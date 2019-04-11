@@ -4,27 +4,43 @@
         Authors: A. Pasotti, V. Picavet
         git sha              : $TemplateVCSFormat
 
-        Modified by JK
-
+        # Modified by Josef Källgården 2019-03-28
         #Please notice, this will only work with flat plugin folder structure!
-        USAGE:
-        python plugin_zip_and_upload.py 
 """
 
-import sys
-import os
-import getpass
-import xmlrpclib
+"""
+USAGE:
+
+only  zip:
+python3 plugin_zip_and_upload.py
+
+
+zip and upload:
+python3 plugin_zip_and_upload.py --upload BackupLayer.zip
+
+
+"""
+
+import sys, os
 import zipfile, zlib
+import getpass
+import xmlrpc.client
 from optparse import OptionParser
 
+#standard_library.install_aliases() # commented out from original code due to NameError: name 'standard_library' is not defined
+
 # Configuration
-PROTOCOL = 'http'
+PROTOCOL = 'https'
 SERVER = 'plugins.qgis.org'
-PORT = '80'
+PORT = '443'
 ENDPOINT = '/plugins/RPC2/'
 VERBOSE = False
 
+# JK additions:
+IGNORE_FOLDERS = ['.git', 'arkiv','__pycache__','test','help','scripts','arkiv_o_dok']
+IGNORE_FILES = ['.gitignore', 'plugin_zip_and_upload.py','Makefile','pb_tool.cfg','transparency.png']
+IGNORE_FILESUFFIX = ('.pyc','.zip')
+#/JK additions
 
 def main(parameters, arguments):
     """Main entry point.
@@ -32,33 +48,33 @@ def main(parameters, arguments):
     :param parameters: Command line parameters.
     :param arguments: Command line arguments.
     """
+    address = "{protocol}://{username}:{password}@{server}:{port}{endpoint}".format(
+        protocol=PROTOCOL,
+        username=parameters.username,
+        password=parameters.password,
+        server=parameters.server,
+        port=parameters.port,
+        endpoint=ENDPOINT)
+    print("Connecting to: %s" % hide_password(address))
 
-    address = "%s://%s:%s@%s:%s%s" % (
-        PROTOCOL,
-        parameters.username,
-        parameters.password,
-        parameters.server,
-        parameters.port,
-        ENDPOINT)
-    print "Connecting to: %s" % hide_password(address)
-
-    server = xmlrpclib.ServerProxy(address, verbose=VERBOSE)
+    server = xmlrpc.client.ServerProxy(address, verbose=VERBOSE)
 
     try:
-        plugin_id, version_id = server.plugin.upload(
-            xmlrpclib.Binary(open(arguments[0]).read()))
-        print "Plugin ID: %s" % plugin_id
-        print "Version ID: %s" % version_id
-    except xmlrpclib.ProtocolError, err:
-        print "A protocol error occurred"
-        print "URL: %s" % hide_password(err.url, 0)
-        print "HTTP/HTTPS headers: %s" % err.headers
-        print "Error code: %d" % err.errcode
-        print "Error message: %s" % err.errmsg
-    except xmlrpclib.Fault, err:
-        print "A fault occurred"
-        print "Fault code: %d" % err.faultCode
-        print "Fault string: %s" % err.faultString
+        with open(arguments[0], 'rb') as handle:
+            plugin_id, version_id = server.plugin.upload(
+                xmlrpc.client.Binary(handle.read()))
+        print("Plugin ID: %s" % plugin_id)
+        print("Version ID: %s" % version_id)
+    except xmlrpc.client.ProtocolError as err:
+        print("A protocol error occurred")
+        print("URL: %s" % hide_password(err.url, 0))
+        print("HTTP/HTTPS headers: %s" % err.headers)
+        print("Error code: %d" % err.errcode)
+        print("Error message: %s" % err.errmsg)
+    except xmlrpc.client.Fault as err:
+        print("A fault occurred")
+        print("Fault code: %d" % err.faultCode)
+        print("Fault string: %s" % err.faultString)
 
 
 def hide_password(url, start=6):
@@ -77,25 +93,32 @@ def hide_password(url, start=6):
         '*' * (end_position - start_position),
         url[end_position:])
 
-def create_zipfile():#Please notice, this will only work with flat plugin folder structure!
-    # also, excludes are given in code below!
+# JK additions:
+def create_zipfile():
     file_path = os.path.realpath(__file__)
     dir_path = os.path.dirname(file_path)
     current_dir = dir_path.split(os.sep)[-1]
     zf = zipfile.ZipFile(os.path.join(dir_path, current_dir + '.zip'), mode='w')
     for root, dirs, files in os.walk(dir_path):
-        dirs[:] = [d for d in dirs if d not in ['.git', 'arkiv_o_dok','__pycache__']]
-        files[:] = [f for f in files if f not in ['.gitignore', 'plugin_zip_and_upload.py']]#exclude specific files
-        files[:]= [ file for file in files if not file.endswith( ('.pyc','.zip') ) ]#exclude specific file extensions
+        dirs[:] = [d for d in dirs if d not in IGNORE_FOLDERS]
+        files[:] = [f for f in files if f not in IGNORE_FILES]#exclude specific files
+        files[:]= [ file for file in files if not file.endswith( IGNORE_FILESUFFIX ) ]#exclude specific file extensions
         for file in files:
-            print('now adding this file ' + os.path.join(root,file))
-            print('in archive it is saved as ' + os.path.join(current_dir,file))
-            zf.write(os.path.join(root,file),os.path.join(current_dir,file), compress_type=zipfile.ZIP_DEFLATED)
+            print('now adding this file {}'.format(os.path.join(root,file)))
+            #print('in archive it is saved as ' + os.path.join(current_dir,file))
+            print('in archive it is saved as {}'.format(os.path.relpath(os.path.join(root, file), os.path.join(dir_path, '..'))))
+            #zf.write(os.path.join(root,file),os.path.join(current_dir,file), compress_type=zipfile.ZIP_DEFLATED)
+            zf.write(os.path.join(root,file),os.path.relpath(os.path.join(root, file), os.path.join(dir_path, '..')), compress_type=zipfile.ZIP_DEFLATED)
     zf.close()
     return os.path.join(dir_path, current_dir + '.zip')
+#/JK additions
+
 
 if __name__ == "__main__":
     parser = OptionParser(usage="%prog [options] plugin.zip")
+    parser.add_option(
+        "-l", "--upload", dest="upload",
+        help="set to True if upload",default=False)
     parser.add_option(
         "-w", "--password", dest="password",
         help="Password for plugin site", metavar="******")
@@ -110,26 +133,27 @@ if __name__ == "__main__":
         help="Specify server name", metavar="plugins.qgis.org")
     options, args = parser.parse_args()
     if len(args) != 1:
-        print "No zip file specified, will create one instead.\n"
-        zipfilename = create_zipfile()
-        args = [zipfilename]
-        print('created file: ' + args[0])
         parser.print_help()
-        #sys.exit(1)
-    if not options.server:
-        options.server = SERVER
-    if not options.port:
-        options.port = PORT
-    if not options.username:
-        # interactive mode
-        username = getpass.getuser()
-        print "Please enter user name [%s] :" % username,
-        res = raw_input()
-        if res != "":
-            options.username = res
-        else:
-            options.username = username
-    if not options.password:
-        # interactive mode
-        options.password = getpass.getpass()
-    main(options, args)
+        print("No zip file specified, therefore creating one.\n")
+        zipfilename = create_zipfile()
+        print('created file: ' + zipfilename)
+    if options.upload:
+        if not options.server:
+            options.server = SERVER
+        if not options.port:
+            options.port = PORT
+        if not options.username:
+            # interactive mode
+            username = getpass.getuser()
+            print("Please enter user name [%s] :" % username)#, end=' ') #commented out from original code due to syntaxerror
+
+            res = input()
+            if res != "":
+                options.username = res
+            else:
+                options.username = username
+        if not options.password:
+            # interactive mode
+            options.password = getpass.getpass()
+
+        main(options, args)

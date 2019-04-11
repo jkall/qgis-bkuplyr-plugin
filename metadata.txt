@@ -14,7 +14,7 @@ version=0.3
 author=Josef Källgården
 email=groundwatergis@gmail.com
 
-about=Backup layer creates a compressed archive (zip) of the data files corresponding to the selected layer. The plugin will search for all files with the same name (and same path) as your data file, independently of the file extension. The compressed archive will be saved in the same folder as the original data file with current datetime stamp appended to the file name. By using this plugin you can easily, from within qgis, create a backup copy of your layer before you start editing. This plugin will only work with layers where the data source is a file and not where the data source is a database (no matter if it is a single file database).
+about=Backup layer creates a compressed archive (zip) of the data files corresponding to the selected layer. The plugin will search for all files with the same name (and same path) as your data file, independently of the file extension. The compressed archive will be saved in the same folder as the original data file with current datetime stamp appended to the file name. By using this plugin you can easily, from within qgis, create a backup copy of your layer before you start editing. This plugin will only work with layers where the data source is a file and not where the data source is a database.
 
 tracker=https://github.com/jkall/qgis-bkuplyr-plugin/issues
 repository=https://github.com/jkall/qgis-bkuplyr-plugin

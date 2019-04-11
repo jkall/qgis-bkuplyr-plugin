@@ -191,7 +191,7 @@ class BackupLayer:
         """Run method that performs all the real work"""
         lyr = self.iface.activeLayer()
         if lyr is not None:
-            (fpath,fname) = os.path.split(lyr.dataProvider().dataSourceUri())
+            (fpath,fname) = os.path.split(lyr.dataProvider().dataSourceUri().replace('dbname=','').replace("'",""))
             fname = os.path.splitext(fname)[0]
             bkupname = os.path.join(fpath, fname + datetime.datetime.now().strftime('%Y%m%dT%H%M') + '.zip')
             sanity = askuser("""This will create a backup file named """ + bkupname + """\n\nContinue?""",'Backup?')
